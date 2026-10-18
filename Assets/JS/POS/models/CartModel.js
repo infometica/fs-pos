@@ -21,6 +21,7 @@ class CartModel {
         }
         this.lines[index][field] = value;
 
+        this.cartChangeEvent();
         return this.lines[index];
     }
 
@@ -31,6 +32,11 @@ class CartModel {
     getProduct(index) {
         this.lines[index].index = index;
         return this.lines[index];
+    }
+
+    setAgent(codagente) {
+        this.doc.codagente = codagente;
+        this.cartChangeEvent();
     }
 
     setCustomer(codcliente) {
@@ -75,6 +81,24 @@ class CartModel {
         this.cartChangeEvent();
     }
 
+    addOrUpdateProduct(code, description, thumbnail) {
+        const product = this.lines.find(element => element.referencia === code);
+
+        if (product) {
+            product.cantidad = (product.cantidad || 0) + 1;
+        } else {
+            this.lines.unshift({referencia: code, descripcion: description, thumbnail: thumbnail});
+        }
+
+        this.cartChangeEvent();
+    }
+
+    addProduct(code, description, thumbnail) {
+        this.lines.unshift({referencia: code, descripcion: description, thumbnail: thumbnail});
+
+        this.cartChangeEvent();
+    }
+
     update({doc = this.init, lines = [], token = ''}) {
         const tipoDocumento = this.doc['tipo-documento'];
 
@@ -105,11 +129,11 @@ class CartModel {
     }
 
     cartUpdateEvent() {
-        EventManager.emit('cart:update', this);
+        EventManager.emit('event:cart:updated', this);
     }
 
     cartChangeEvent() {
-        EventManager.emit('cart:change', this);
+        EventManager.emit('cart:changed', this);
     }
 }
 

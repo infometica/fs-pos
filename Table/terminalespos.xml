@@ -19,6 +19,12 @@
         <null>NO</null>
     </column>
     <column>
+        <name>can_change_agent</name>
+        <type>boolean</type>
+        <null>YES</null>
+        <null>false</null>
+    </column>
+    <column>
         <name>codalmacen</name>
         <type>character varying(4)</type>
         <null>NO</null>
@@ -44,6 +50,18 @@
         <null>NO</null>
     </column>
     <column>
+        <name>free_cart_lines</name>
+        <type>boolean</type>
+        <null>YES</null>
+        <default>null</default>
+    </column>
+    <column>
+        <name>group_cart_lines</name>
+        <type>boolean</type>
+        <null>YES</null>
+        <default>true</default>
+    </column>
+    <column>
         <name>idterminal</name>
         <type>serial</type>
         <null>NO</null>
@@ -67,12 +85,18 @@
     <column>
         <name>productsource</name>
         <type>integer</type>
-        <default>null</default>
+        <default>NULL</default>
+    </column>
+    <column>
+        <name>product_display_mode</name>
+        <type>character varying(10)</type>
+        <null>YES</null>
+        <default>'grid'</default>
     </column>
     <column>
         <name>terminal_type</name>
         <type>character varying(10)</type>
-        <default>null</default>
+        <default>NULL</default>
     </column>
     <constraint>
         <name>terminalespos_pkey</name>

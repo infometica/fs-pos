@@ -4,6 +4,7 @@
  */
 
 import EventManager from "../core/EventManager.js";
+import EventDispatcher from "../core/EventDispatcher.js";
 import Modals from "../components/Modals.js";
 import templates from "./TemplateManger.js";
 import * as Core from "../Core.js";
@@ -39,11 +40,20 @@ class MainView {
     };
 
     updateProductFamilyList = (data = []) => {
-        templates.render('productFilterListTemplate', {filters: data}, 'productFilterListTemplateView');
-        templates.render('productFilterListTemplate', {filters: data}, 'product:filter:family:view');
+        templates.render('product:filter:template', {filters: data}, 'product:filter:template:view');
+        templates.render('product:filter:template', {filters: data}, 'product:filter:family:view');
     };
+
+    updateFamilyNavigator = ({madre, children, breadcrumb}) => {
+        templates.render('family:breadcrumb:template', {breadcrumb}, 'family:breadcrumb:template:view');
+        templates.render('family:list:template', {children}, 'family:list:template:view');
+    };
+
     updateProductSearchResult = (data = []) => {
-        templates.render('productSearchListTemplate', {products: data}, 'productSearchListTemplateView');
+        const templateId = AppSettings.productsearch.templateDisplayMode === 'list'
+            ? 'product:search:list:template'
+            : 'product:search:grid:template';
+        templates.render(templateId, {products: data}, 'product:search:list:view');
     };
 
     updateView({doc}) {
@@ -58,14 +68,14 @@ class MainView {
         this.toggleLastOrdersModal();
 
         data = Core.isObjectEmpty(data) ? [] : data;
-        templates.render('lastOrdersListTemplate', { orders:data }, 'lastOrdersListTemplateView');
+        templates.render('last:order:list:template', {orders: data}, 'last:order:list:view');
     }
 
     showPausedOrdersModal = (data) => {
         this.toggleDraftOrdersModal();
 
         data = Core.isObjectEmpty(data) ? [] : data;
-        templates.render('draftOrderListTemplate', {orders: data}, 'draftOrderListTemplateView')
+        templates.render('draft:order:list:template', {orders: data}, 'draft:order:list:view')
     };
 
     showPrintDraftContextModal = data => {
@@ -86,14 +96,14 @@ class MainView {
         this.toggleProductImagesModal();
 
         data = Core.isObjectEmpty(data) ? [] : data;
-        templates.render('productImageListTemplate', {images: data}, 'productImageListTemplateView');
+        templates.render('product:image:list:template', {images: data}, 'product:image:list:template:view');
     };
 
     showProductStockDetailModal = data => {
         this.toggleProductStockDetailModal();
 
         data = Core.isObjectEmpty(data) ? [] : data;
-        templates.render('productStockListTemplate', {stocks: data}, 'productStockListTemplateView');
+        templates.render('product:stock:list:template', {stocks: data}, 'product:stock:list:view');
     };
 
     showReturnSaleModal({doc, lines}) {
@@ -102,11 +112,11 @@ class MainView {
         doc = Core.isObjectEmpty(doc) ? [] : doc;
         lines = Core.isObjectEmpty(lines) ? [] : lines;
 
-        console.log('Document',doc);
-        console.log('Document lines',lines);
+        console.log('Document', doc);
+        console.log('Document lines', lines);
 
-        templates.render('returnSaleSearchResultTemplate', { order:doc, lines:lines }, 'returnSaleSearchResultView');
-        templates.render('returnSaleLinesTemplate', { order:doc, lines:lines }, 'returnSaleLinesTemplateView');
+        templates.render('returnSaleSearchResultTemplate', {order: doc, lines: lines}, 'returnSaleSearchResultView');
+        templates.render('returnSaleLinesTemplate', {order: doc, lines: lines}, 'returnSaleLinesTemplateView');
     }
 
     toggleLoadingModal = () => Modals.toggleModal('loadingModal');
@@ -147,14 +157,6 @@ const updateDocumentFieldValue = (data = {}, element) => {
     }
 }
 
-const updateProductFilter = async searchFilter => {
-    let query = mainViewInstance().productSearchBox().value ?? '';
-    let result = await Core.searchProduct(query, searchFilter);
-
-    mainViewInstance().updateProductFamilyList(searchFilter.families);
-    mainViewInstance().updateProductSearchResult(result);
-};
-
 const updateView = data => {
     mainViewInstance().updateView(data);
 };
@@ -190,10 +192,23 @@ function cleanMessages() {
     }, 1000);
 }
 
+function handleViewPaneChange(el) {
+    const cart = document.getElementById('cartPane');
+    const products = document.getElementById('productsPane');
+    const showCart = el.dataset.action === 'view:cart:pane';
+
+    cart.classList.toggle('hidden', !showCart);
+    cart.classList.toggle('flex', showCart);
+    products.classList.toggle('hidden', showCart);
+    products.classList.toggle('flex', !showCart);
+}
+
 const mainViewInstance = () => Object.freeze(new MainView());
 
-EventManager.on('cart:update', mainViewInstance().updateView);
-EventManager.on('product:filter:changed', updateProductFilter);
+EventManager.on('event:cart:updated', mainViewInstance().updateView);
 EventManager.on('responseMessages', showMessages);
+
+EventDispatcher.register('view:cart:pane', handleViewPaneChange.bind(this));
+EventDispatcher.register('view:products:pane', handleViewPaneChange.bind(this));
 
 export default mainViewInstance();

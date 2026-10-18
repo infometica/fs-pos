@@ -1,8 +1,10 @@
 import Modals from "../components/Modals.js";
 import templates from "../views/TemplateManger.js";
+import EventManager from "../core/EventManager.js";
 import * as Money from "../Money.js";
 
 const viewElements = {
+    agentNameLabel: document.getElementById('agentNameLabel'),
     customerNameLabel: document.getElementById('customerNameLabel'),
     customerSearchBox: document.getElementById('customerSearchBox'),
     cartTotalLabel: document.getElementById('cartTotal'),
@@ -38,8 +40,14 @@ class CartView {
         Modals.toggleModal('productQuantityEditModal');
     };
 
+    updateAgentLabel = (name = '') => {
+        if (viewElements.agentNameLabel) {
+            viewElements.agentNameLabel.textContent = name;
+        }
+    };
+
     updateCustomerListView = (data = []) => {
-        templates.render('customerListTemplate', {customers: data}, 'customerListTemplateView');
+        templates.render('customer:list:template', {customers: data}, 'customer:list:view');
     };
 
     updateCustomerNameLabel = (name = '') => {
@@ -51,7 +59,7 @@ class CartView {
     };
 
     renderCartEditView = (product = {}) => {
-        templates.render('cartEditTemplate', {product}, 'cartEditTemplateView');
+        templates.render('cart:edit:form:template', {product}, 'cart:edit:form:view');
     };
 
     updateTotals = (data = {}) => {
@@ -60,7 +68,13 @@ class CartView {
         this.orderDiscountAmountInput().value = data.doc.dtopor1 ?? 0;
         this.orderDiscountAmountLabel().textContent = Money.roundFixed(data.getDiscountAmount());
         this.orderNetoLabel().textContent = Money.roundFixed(data.doc.neto);
-        templates.render('cartListTemplate', data, 'cartListTemplateView');
+
+        templates.render('cart:list:template', data, 'cart:list:template:view');
+        EventManager.emit('event:cart:rendered');
+    };
+
+    toggleAgentSelectModal = () => {
+        Modals.toggleModal('agent:select:modal');
     };
 
     toggleCustomerSearchModal = () => {

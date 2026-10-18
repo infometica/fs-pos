@@ -33,6 +33,7 @@ class TerminalPuntoVenta extends ModelClass
 
     public $anchopapel;
     public $aceptapagos;
+    public $can_change_agent;
     public $codalmacen;
     public $codcliente;
     public $codserie;
@@ -41,14 +42,15 @@ class TerminalPuntoVenta extends ModelClass
     public $defaultdocument;
     public $disponible;
     public $idempresa;
-
     public $idterminal;
     public $nombre;
     public $numerotickets;
     public $productsource;
     public $restringealmacen;
 
-    public $productolibre;
+    public $free_cart_lines;
+
+    public $group_cart_lines;
 
     public $terminal_type;
 
@@ -146,6 +148,11 @@ class TerminalPuntoVenta extends ModelClass
     public function getWarehouse(): Almacen
     {
         return Almacenes::get($this->codalmacen);
+    }
+
+    public function getProductDisplayMode(): string
+    {
+        return $this->product_display_mode ?? 'grid';
     }
 
     public function save(): bool

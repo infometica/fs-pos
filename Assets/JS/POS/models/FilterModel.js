@@ -1,7 +1,10 @@
 class FilterClass {
-    constructor({families = [], filters = []} = {}) {
+    constructor({families = [], filters = [], currentFamily = null, breadcrumb = [], codcliente = ''} = {}) {
         this.families = families;
         this.filters = filters;
+        this.currentFamily = currentFamily;
+        this.breadcrumb = breadcrumb;
+        this.codcliente = codcliente;
     }
 
     deleteFamilyFilter(index) {
@@ -27,15 +30,42 @@ class FilterClass {
         }
     }
 
+    navigateToFamily(familia) {
+        this.currentFamily = familia;
+        if (familia) {
+            const index = this.breadcrumb.findIndex(f => f.codfamilia === familia.codfamilia);
+            if (index === -1) {
+                this.breadcrumb.push(familia);
+            } else {
+                this.breadcrumb = this.breadcrumb.slice(0, index + 1);
+            }
+        } else {
+            this.breadcrumb = [];
+        }
+    }
+
+    navigateBack() {
+        this.breadcrumb.pop();
+        this.currentFamily = this.breadcrumb[this.breadcrumb.length - 1] || null;
+    }
+
+    setCustomer(codcliente) {
+        this.codcliente = codcliente || '';
+    }
+
     reset() {
         this.families = [];
         this.filters = [];
+        this.currentFamily = null;
+        this.breadcrumb = [];
+        this.codcliente = '';
     }
 }
 
 const searchFilter = new FilterClass({
     families: [],
-    filters: []
+    filters: [],
+    codcliente: ''
 });
 
 export {FilterClass, searchFilter};

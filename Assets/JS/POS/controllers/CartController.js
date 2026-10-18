@@ -1,7 +1,7 @@
 import CartModel from '../models/CartModel.js';
 import CartView from '../views/CartView.js';
-import eventDispatcher from '../core/EventDispatcher.js';
-import eventManager from '../core/EventManager.js';
+import EventDispatcher from '../core/EventDispatcher.js';
+import EventManager from '../core/EventManager.js';
 
 const Cart = new CartModel({
     'doc': {
@@ -41,36 +41,70 @@ const CartController = {
     },
 
     /**
+     * @property {string | null} code - The unique identifier for the product.
+     * @property {string} description - The name or description of the product to be added.
+     * @property {string} thumbnail - The URL or path to the product's thumbnail image.
+     * @param data
+     */
+    addLine(data) {
+        const {code, description, thumbnail} = data;
+
+        const freeLinesEnabled = !!AppSettings.cart.freeLines;
+        const groupLinesEnabled = !!AppSettings.cart.groupLines;
+        const isFreeLine = code === '';
+
+        const forceNewLine = (isFreeLine && freeLinesEnabled) || !groupLinesEnabled;
+
+        /* forceNewLine = true; // Always add a new line */
+        if (forceNewLine) {
+            Cart.addProduct(code, description, thumbnail);
+        } else {
+            Cart.addOrUpdateProduct(code, description, thumbnail);
+        }
+
+        CartController.playBeepSound();
+        this.setSelectedIndex(0);
+    },
+
+
+    /**
      * Deletes a product from the cart using the provided element's dataset index.
      *
-     * @param {HTMLElement} el - The DOM element that triggered the action.
-     * @property {string} el.dataset.index - The index of the product to delete.
+     * @param index - The index of the Cart line to delete.
      */
-    deleteProduct(el) {
-        const {index} = el.dataset;
+    deleteLine(index) {
+        index = Number(index);
         Cart.deleteProduct(index);
+
+        if (!Cart.lines.length) {
+            this.clearSelection();
+            return;
+        }
+
+        const next = Math.min(Number(index), Cart.lines.length - 1);
+        this.setSelectedIndex(next);
     },
 
     /**
-     * Opens the product edit modal for the specified product using the provided element's dataset index.
+     * Opens the product edit modal for the specified Cart line using the provided index.
      *
-     * @param {HTMLElement} el - The DOM element that triggered the action.
-     * @property {string} el.dataset.index - The index of the product to delete.
+     * @param index - The index of the Cart line to edit.
      */
-    editProduct(el) {
-        const {index} = el.dataset;
+    editProduct(index) {
+        if (index === null || index === undefined) return;
+
         const item = Cart.getProduct(index);
         CartView.showProductEditModal(item);
     },
 
     /**
-     * Opens the quantity edit modal for the specified product using the provided element's dataset index.
+     * Opens the product edit quantity modal for the specified Cart line using the provided index.
      *
-     * @param {HTMLElement} el - The DOM element that triggered the action.
-     * @property {string} el.dataset.index - The index of the product to delete.
+     * @param index - The index of the Cart line to edit.
      */
-    editProductQuantity(el) {
-        const {index} = el.dataset;
+    editProductQuantity(index) {
+        if (index === null || index === undefined) return;
+
         const item = Cart.getProduct(index);
         CartView.showQuantityEditModal(item);
     },
@@ -86,75 +120,53 @@ const CartController = {
     async editProductField(el, value) {
         const {index, field} = el.dataset;
         await Cart.editProduct(index, field, value);
-        await CartController.cartChange();
+        //await CartController.cartChange();
         CartView.renderCartEditView(Cart.getProduct(index));
     },
 
     /**
-     * Decreases the quantity of the specified product by 1. If the quantity is already 0, it remains at 0.
+     * Decreases the quantity of the specified Cart line using the provided index.
      *
-     * @param {HTMLElement} el - The DOM element that triggered the action.
-     * @property {string} el.dataset.index - The index of the product to delete.
+     * @param index - The index of the Cart line to edit.
      */
-    quantityDecrease(el) {
-        const {index} = el.dataset;
+    quantityDecrease(index) {
+        if (index === null || index === undefined) return;
+
         const product = Cart.getProduct(index);
         const value = Math.max(product.cantidad - 1, 0);
+
         CartController.editProductField({dataset: {index, field: 'cantidad'}}, value);
     },
 
 
     /**
-     * Increases the quantity of the specified product by 1.
+     * Increase the quantity of the specified Cart line using the provided index.
      *
-     * @param {HTMLElement} el - The DOM element that triggered the action.
-     * @property {string} el.dataset.index - The index of the product to delete.
+     * @param index - The index of the Cart line to edit.
      */
-    quantityIncrease(el) {
-        const {index} = el.dataset;
+    quantityIncrease(index) {
+        if (index === null || index === undefined) return;
+
         const product = Cart.getProduct(index);
         const value = product.cantidad + 1;
+
         CartController.editProductField({dataset: {index, field: 'cantidad'}}, value);
     },
 
     /**
      * Update the customer code on the document.
      *
-     * @param {HTMLElement} el - The DOM element that triggered the action.
-     * @property {string} el.dataset.index - The index of the product to delete.
-     * @property {string} el.dataset.description - The index of the product to delete.
+     * @param {code, description} customer
+     * @property {string} customer.code - The codcliente.
+     * @property {string} customer.description - The cliente name.
      */
-    setCustomer(el) {
-        const {code, description} = el.dataset;
+    setCustomer(customer) {
+        const {code, description} = customer;
         if (!code) return;
 
         Cart.setCustomer(code);
         CartView.updateCustomerNameLabel(description);
         CartView.toggleCustomerSearchModal();
-    },
-
-    /**
-     * Sets the document type in the cart based on a DOM element's dataset.
-     *
-     * @param {HTMLElement} el - The DOM element containing dataset attributes for document type.
-     * @param {Object} el.dataset
-     * @param {string|null} el.dataset.code - The code of the document type. If null or empty, the default document is used.
-     * @param {string} el.dataset.serie - The series associated with the document type.
-     * @param {string} el.dataset.description - The description of the document type.
-     */
-    setDocument(el) {
-        if (!el || !el.dataset) return;
-
-        const {code, serie, description} = el.dataset;
-
-        if (!code) {
-            CartController.resetDocument();
-            return;
-        }
-
-        Cart.updateDocumentType(code, serie);
-        CartView.updateDocumentClassLabel(description);
-        CartView.toggleDocumentClassSearchModal();
     },
 
     /**
@@ -165,20 +177,6 @@ const CartController = {
         CartView.updateDocumentClassLabel(AppSettings.document.description);
     },
 
-    /**
-     * @param {HTMLElement} el - The DOM element that triggered the action.
-     *
-     * @property {string | null} el.dataset.code - The unique identifier for the product.
-     * @property {string} el.dataset.description - The name or description of the product to be added.
-     * @property {string} el.dataset.thumbnail - The URL or path to the product's thumbnail image.
-     */
-    addProduct(el) {
-        const {code, description, thumbnail} = el.dataset;
-        if (!code) return;
-
-        Cart.setProduct(code, description, thumbnail);
-        CartController.playBeepSound();
-    },
 
     /**
      * Adds a product to the cart based on product data.
@@ -195,12 +193,20 @@ const CartController = {
         CartView.updateTotals(data);
     },
 
-    orderResume(doc) {
+    handleOrderResume(doc) {
         const documentClass = AppSettings['supported-documents']
             .find(item => item.codserie === doc.codserie && item.tipodoc === doc.generadocumento);
 
         if (documentClass) {
             CartView.updateDocumentClassLabel(documentClass.descripcion);
+        }
+
+        // Update agent label if agent is assigned
+        if (doc.codagente) {
+            const agent = AppSettings['agents']?.find(item => item.codagente === doc.codagente);
+            if (agent) {
+                CartView.updateAgentLabel(agent.nombre);
+            }
         }
 
         Cart.updateDocumentClass();
@@ -226,28 +232,221 @@ const CartController = {
         });
     },
 
-    async cartChange() {
-        eventManager.emit('order:recalculate', this.Cart);
+    showLineToolbar(index) {
+        const bar = document.getElementById('cartLineToolbar');
+        const lbl = document.getElementById('cartLineToolbarIndex');
+        if (!bar || !lbl) return;
+
+        lbl.textContent = index + 1;
+        bar.classList.remove('hidden');
     },
 
-    init() {
-        eventDispatcher.register('cart:product:delete', this.deleteProduct.bind(this));
-        eventDispatcher.register('cart:product:edit', this.editProduct.bind(this));
-        eventDispatcher.register('cart:product:quantity:edit', this.editProductQuantity.bind(this));
-        eventDispatcher.register('cart:product:quantity:decrease', this.quantityDecrease.bind(this));
-        eventDispatcher.register('cart:product:quantity:increase', this.quantityIncrease.bind(this));
-        eventDispatcher.register('cart:product:add', this.addProduct.bind(this));
-        eventDispatcher.register('cart:customer:set', this.setCustomer.bind(this));
-        eventDispatcher.register('cart:document:set', this.setDocument.bind(this));
+    async cartChange() {
+        EventManager.emit('order:recalculate', this.Cart);
+    },
 
-        eventManager.on('cart:change', this.cartChange.bind(this));
-        eventManager.on('cart:update', this.cartUpdateTotals.bind(this));
-        eventManager.on('customer:change', this.setCustomer.bind(this));
-        eventManager.on('order:completed', this.resetDocument.bind(this));
-        eventManager.on('order:resumed', (doc) => this.orderResume(doc));
-        eventManager.on('order:recalculated', (result) => {
-            this.update(result);
-        });
+    setSelectedIndex(index) {
+        const idx = (index === null || index === undefined) ? null : Number(index);
+        this.selectedIndex = Number.isFinite(idx) ? idx : null;
+
+        // feedback inmediato (optimista) si existe en DOM
+        this.applySelection();
+    },
+
+    applySelection() {
+        if (this.selectedIndex === null) return;
+
+        const row = document.querySelector(`.cart-line[data-index="${this.selectedIndex}"]`);
+        if (!row) return; // todavía no existe en DOM (render pendiente)
+
+        document
+            .querySelectorAll('.cart-line[aria-selected="true"]')
+            .forEach(r => r.setAttribute('aria-selected', 'false'));
+
+        row.setAttribute('aria-selected', 'true');
+        row.focus?.({preventScroll: true});
+
+        // opcional: scroll
+        row.scrollIntoView?.({behavior: 'smooth', block: 'nearest'});
+
+        // toolbar
+        this.showLineToolbar(this.selectedIndex);
+    },
+
+    hideLineToolbar() {
+        const bar = document.getElementById('cartLineToolbar');
+        if (bar) bar.classList.add('hidden');
+    },
+
+    clearSelection() {
+        this.selectedIndex = null;
+
+        document
+            .querySelectorAll('.cart-line[aria-selected="true"]')
+            .forEach(r => r.setAttribute('aria-selected', 'false'));
+
+        this.hideLineToolbar();
+    },
+
+    /**
+     * Deletes a cart line using the provided element's dataset index.
+     *
+     * @param {HTMLElement} el - The DOM element that triggered the action.
+     * @property {string} el.dataset.index - The index of the product to delete.
+     */
+    handleLineDelete(el) {
+        const {index} = el.dataset;
+
+        this.deleteLine(index);
+    },
+
+    /**
+     * Edit a cart line using the provided element's dataset index.
+     *
+     * @param {HTMLElement} el - The DOM element that triggered the action.
+     * @property {string} el.dataset.index - The index of the cart line to edit.
+     */
+    handleLineEdit(el) {
+        const {index} = el.dataset;
+
+        this.editProduct(index);
+    },
+
+    /**
+     * Edit a cart line using the provided element's dataset index.
+     *
+     * @param {HTMLElement} el - The DOM element that triggered the action.
+     * @property {string} el.dataset.index - The index of the cart line to edit.
+     */
+    handleLineQuantityEdit(el) {
+        const {index} = el.dataset;
+
+        this.editProductQuantity(index);
+    },
+
+    /**
+     * Decreases the quantity of the specified product by 1. If the quantity is already 0, it remains at 0.
+     *
+     * @param {HTMLElement} el - The DOM element that triggered the action.
+     * @property {string} el.dataset.index - The index of the cart line to decrease.
+     */
+    handleLineQuantityDecrease(el) {
+
+        const {index} = el.dataset;
+
+        this.quantityDecrease(index);
+    },
+
+    /**
+     * Decreases the quantity of the specified product by 1. If the quantity is already 0, it remains at 0.
+     *
+     * @param {HTMLElement} el - The DOM element that triggered the action.
+     * @property {string} el.dataset.index - The index of the cart line to decrease.
+     */
+    handleLineQuantityIncrease(el) {
+
+        const {index} = el.dataset;
+
+        this.quantityIncrease(index);
+    },
+
+    /**
+     * @param {HTMLElement} el - The DOM element that triggered the action.
+     *
+     * @property {string | null} el.dataset.code - The unique identifier for the product.
+     * @property {string} el.dataset.description - The name or description of the product to be added.
+     * @property {string} el.dataset.thumbnail - The URL or path to the product's thumbnail image.
+     */
+    handleLineAdd(el) {
+        const {code, description, thumbnail} = el.dataset;
+
+        this.addLine({code, description, thumbnail});
+    },
+
+    /**
+     * Update the agent code on the document.
+     *
+     * @param {HTMLElement} el - The DOM element that triggered the action.
+     * @property {string} el.dataset.code - The codagente.
+     * @property {string} el.dataset.description - The agent name.
+     */
+    handleSetAgent(el) {
+        const {code, description} = el.dataset;
+        if (!code) return;
+
+        Cart.setAgent(code);
+        CartView.updateAgentLabel(description);
+        CartView.toggleAgentSelectModal();
+    },
+
+    /**
+     * Sets the document type in the cart based on a DOM element's dataset.
+     *
+     * @param {HTMLElement} el - The DOM element containing dataset attributes for document type.
+     * @param {Object} el.dataset
+     * @param {string|null} el.dataset.code - The code of the document type. If null or empty, the default document is used.
+     * @param {string} el.dataset.serie - The series associated with the document type.
+     * @param {string} el.dataset.description - The description of the document type.
+     */
+    handleSetDocument(el) {
+        if (!el || !el.dataset) return;
+
+        const {code, serie, description} = el.dataset;
+
+        if (!code) {
+            CartController.resetDocument();
+            return;
+        }
+
+        Cart.updateDocumentType(code, serie);
+        CartView.updateDocumentClassLabel(description);
+        CartView.toggleDocumentClassSearchModal();
+    },
+
+    /**
+     * Select a cart line using the provided element's dataset index'.
+     *
+     * @param {HTMLElement} el - The DOM element that triggered the action.
+     * @property {string} el.dataset.index - The index of the product to delete.
+     */
+    handleLineSelectionChange(el) {
+        // Avoid selection if triggered by buttons/inputs
+        if (el.closest('[data-stop="1"]')) return;
+
+        const row = el.closest('.cart-line');
+        if (!row) return;
+
+        this.setSelectedIndex(row.dataset.index);
+    },
+
+
+    init: function () {
+        EventDispatcher.register('ui:cart:agent:set', this.handleSetAgent.bind(this));
+        EventDispatcher.register('ui:cart:document:set', this.handleSetDocument.bind(this));
+        EventDispatcher.register('ui:cart:line:add', this.handleLineAdd.bind(this));
+        EventDispatcher.register('ui:cart:line:delete', this.handleLineDelete.bind(this));
+        EventDispatcher.register('ui:cart:line:edit', this.handleLineEdit.bind(this));
+        EventDispatcher.register('ui:cart:line:quantity:decrease', this.handleLineQuantityDecrease.bind(this));
+        EventDispatcher.register('ui:cart:line:quantity:increase', this.handleLineQuantityIncrease.bind(this));
+        EventDispatcher.register('ui:cart:line:selection:change', this.handleLineSelectionChange.bind(this));
+
+        EventDispatcher.register('ui:cart:line:toolbar:edit', () => this.editProduct(this.selectedIndex));
+        EventDispatcher.register('ui:cart:line:toolbar:delete', () => this.deleteLine(this.selectedIndex));
+        EventDispatcher.register('ui:cart:line:toolbar:qty:increase', () => this.quantityIncrease(this.selectedIndex));
+        EventDispatcher.register('ui:cart:line:toolbar:qty:decrease', () => this.quantityDecrease(this.selectedIndex));
+
+        EventManager.on('event:cart:line:selected', (index) => this.setSelectedIndex(index));
+        EventManager.on('event:cart:rendered', () => this.applySelection());
+        EventManager.on('event:cart:updated', this.cartUpdateTotals.bind(this));
+        EventManager.on('event:customer:changed', this.setCustomer.bind(this));
+        EventManager.on('event:order:completed', this.resetDocument.bind(this));
+        EventManager.on('event:order:resumed', (doc) => this.handleOrderResume(doc));
+        EventManager.on('event:order:recalculated', (result) => this.update(result));
+        EventManager.on('event:product:scanned', this.addLine.bind(this));
+        EventManager.on('event:cart:line:edit', (index) => this.editProduct(index));
+        EventManager.on('event:cart:line:delete', (index) => this.deleteLine(index));
+        EventManager.on('event:cart:line:qty:increase', (index) => this.quantityIncrease(index));
+        EventManager.on('event:cart:line:qty:decrease', (index) => this.quantityDecrease(index));
 
         document.addEventListener('change', (event) => {
             const {action, documentField} = event.target.dataset;

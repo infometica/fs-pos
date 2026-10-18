@@ -1,0 +1,26 @@
+{#
+/**
+ * This file is part of POS plugin for FacturaScripts
+ * Copyright (C) 2022-2026 Juan José Prieto Dzul <juanjoseprieto88@gmail.com>
+ *
+ * Embebe el POS (app aparte, con su propio framework CSS) dentro del panel
+ * estándar de FacturaScripts, en vez de abrirlo a pantalla completa.
+ */
+#}
+{% extends "Master/MenuBghTemplate.html.twig" %}
+
+{% block body %}
+    <div class="container-fluid d-print-none">
+        <div class="row">
+            <div class="col">
+                <div class="card shadow mb-3">
+                    <div class="card-body p-0">
+                        <iframe id="posPanelFrame" src="{{ fsc.posUrl }}" title="{{ trans('point-of-sale') }}"
+                                style="width: 100%; height: calc(100vh - 180px); min-height: 600px; border: 0;"
+                                allow="fullscreen"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
