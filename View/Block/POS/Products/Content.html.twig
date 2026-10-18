@@ -45,20 +45,19 @@
             </div>
             <!-- Descripción -->
             <div class="flex-1 text-center mb-3">
-                <span class="font-semibold uppercase text-gray-800">
-                    <%= product.code %>
-                </span>
+                <% if(product.family) { %>
+                <p class="font-semibold text-gray-500"><%= product.family %></p>
+                <% } %>
                 <p class="italic text-gray-600"><%= product.description %></p>
                 <% if(product.detail) { %>
                 <p><%= product.detail %></p>
                 <% } %>
-                <br>
                 <% if(product.brandname) { %>
                 <p class="font-semibold"><%= product.brandname %></p>
                 <% } %>
-                <% if(product.family) { %>
-                <p class="font-semibold"><%= product.family %></p>
-                <% } %>
+                <span class="block mt-1 font-semibold uppercase text-gray-800">
+                    <%= product.code %>
+                </span>
             </div>
             <!-- Precio / Stock -->
             <div class="mt-auto pt-2 border-t border-dashed border-gray-200 flex items-center justify-between text-sm">
@@ -116,9 +115,11 @@
                 <div class="min-w-0 flex-1">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
+                            <% if (product.family) { %>
                             <p class="text-xs font-semibold text-slate-500 truncate">
-                                <%= product.code %>
+                                <%= product.family %>
                             </p>
+                            <% } %>
                             <p class="mt-0.5 text-sm font-semibold leading-snug line-clamp-2">
                                 <%= product.description %>
                             </p>
@@ -127,6 +128,9 @@
                                 <%= product.detail %>
                             </p>
                             <% } %>
+                            <p class="mt-0.5 text-xs font-semibold text-slate-500 truncate">
+                                <%= product.code %>
+                            </p>
                             {# Badges / meta #}
                             <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
                                 <% if (product.isOutOfStock) { %>
@@ -141,11 +145,6 @@
                                         Stock: <%= (product.stock ?? 0) %>
                                     </span>
 
-                                <% if (product.family) { %>
-                                <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-slate-600">
-                                        <%= product.family %>
-                                    </span>
-                                <% } %>
                                 <% if (product.brandname) { %>
                                 <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 font-semibold text-blue-700">
                                         <%= product.brandname %>
@@ -231,9 +230,9 @@
                 </div>
                 <!-- Descripción -->
                 <div class="flex-1 text-center mb-3">
-                    <span class="font-semibold uppercase text-gray-800">
-                        {{ product.code }}
-                    </span>
+                    {% if product.family %}
+                        <p class="font-semibold text-gray-500">{{ product.family }}</p>
+                    {% endif %}
                     <p class="italic text-gray-600">{{ product.description }}</p>
                     {% if product.detail %}
                         <p>{{ product.detail }}</p>
@@ -241,9 +240,9 @@
                     {% if product.brandname %}
                         <p class="font-semibold">{{ product.brandname }}</p>
                     {% endif %}
-                    {% if product.family %}
-                        <p class="font-semibold">{{ product.family }}</p>
-                    {% endif %}
+                    <span class="block mt-1 font-semibold uppercase text-gray-800">
+                        {{ product.code }}
+                    </span>
                 </div>
                 <!-- Precio / Stock -->
                 <div class="mt-auto pt-2 border-t border-dashed border-gray-200 flex items-center justify-between text-sm">
@@ -310,9 +309,11 @@
                     <div class="min-w-0 flex-1">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <p class="text-xs font-semibold text-slate-500 truncate">
-                                    {{ product.code }}
-                                </p>
+                                {% if product.family %}
+                                    <p class="text-xs font-semibold text-slate-500 truncate">
+                                        {{ product.family }}
+                                    </p>
+                                {% endif %}
                                 <p class="mt-0.5 text-sm font-semibold leading-snug line-clamp-2">
                                     {{ product.description }}
                                 </p>
@@ -321,6 +322,9 @@
                                         {{ product.detail }}
                                     </p>
                                 {% endif %}
+                                <p class="mt-0.5 text-xs font-semibold text-slate-500 truncate">
+                                    {{ product.code }}
+                                </p>
                                 {# Badges / meta #}
                                 <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
                                     {% if product.isOutOfStock %}
@@ -335,12 +339,6 @@
                                         {# <i class="fa-solid fa-dolly-flatbed mr-1"></i> #}
                                         Stock: {{ product.stock | default('0') }}
                                     </span>
-
-                                    {% if product.family %}
-                                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-slate-600">
-                                            {# <i class="fa-solid fa-tag mr-1"></i> #} {{ product.family }}
-                                        </span>
-                                    {% endif %}
 
                                     {% if product.brandname %}
                                         <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 font-semibold text-blue-700">

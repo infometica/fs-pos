@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Personalización infometica: descripción propia por variante.
+-->
+<view>
+    <columns>
+        <group name="data">
+            <column name="description" numcolumns="12" order="115">
+                <widget type="textarea" fieldname="descripcion" rows="2"/>
+            </column>
+        </group>
+    </columns>
+</view>

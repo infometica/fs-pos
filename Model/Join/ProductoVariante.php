@@ -49,11 +49,11 @@ class ProductoVariante extends JoinModel implements JsonSerializable
             'code' => 'V.referencia',
             'codimpuesto' => 'MIN(P.codimpuesto)',
             'barcode' => 'V.codbarras',
-            'description' => 'P.descripcion',
+            'description' => 'COALESCE(NULLIF(V.descripcion, ""), P.descripcion)',
             'price' => 'V.precio',
             'cost' => 'V.coste',
             'stock' => 'SUM(S.disponible)',
-            'detail' => 'CONCAT_WS(" - ", A1.descripcion, A2.descripcion, A3.descripcion, A4.descripcion)',
+            'detail' => 'CASE WHEN COALESCE(V.descripcion, "") = "" THEN CONCAT_WS(" - ", A1.descripcion, A2.descripcion, A3.descripcion, A4.descripcion) ELSE "" END',
             'atribute1' => 'A1.descripcion',
             'atribute2' => 'A2.descripcion',
             'atribute3' => 'A3.descripcion',
@@ -81,7 +81,9 @@ class ProductoVariante extends JoinModel implements JsonSerializable
      */
     protected function getSQLFrom(): string
     {
-        return 'variantes V LEFT JOIN productos P ON V.idproducto = P.idproducto'
+        // oculta la variante base cuando el producto tiene marcada 'ocultar_base' y más de una variante
+        return '(SELECT X.* FROM variantes X WHERE NOT (X.referencia <=> (SELECT P0.referencia FROM productos P0 WHERE P0.idproducto = X.idproducto AND P0.ocultar_base = 1)'
+            . ' AND (SELECT COUNT(*) FROM variantes Y WHERE Y.idproducto = X.idproducto) > 1)) V LEFT JOIN productos P ON V.idproducto = P.idproducto'
             . ' LEFT JOIN atributos_valores A1 ON V.idatributovalor1 = A1.id'
             . ' LEFT JOIN atributos_valores A2 ON V.idatributovalor2 = A2.id'
             . ' LEFT JOIN atributos_valores A3 ON V.idatributovalor3 = A3.id'

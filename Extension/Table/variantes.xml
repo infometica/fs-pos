@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Personalización infometica: descripción propia por variante.
+-->
+<table>
+    <column>
+        <name>descripcion</name>
+        <type>text</type>
+    </column>
+</table>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Personalización infometica: ocultar la variante base (sin color) del producto.
+    NULL = nunca decidido (se activa solo la 1ª vez que el producto tiene >1 variante).
+-->
+<table>
+    <column>
+        <name>ocultar_base</name>
+        <type>boolean</type>
+        <null>YES</null>
+    </column>
+</table>

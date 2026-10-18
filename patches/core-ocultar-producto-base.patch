@@ -1,0 +1,30 @@
+diff --git a/Core/Lib/AjaxForms/PurchasesModalHTML.php b/Core/Lib/AjaxForms/PurchasesModalHTML.php
+index 88fcc66..9840b99 100644
+--- a/Core/Lib/AjaxForms/PurchasesModalHTML.php
++++ b/Core/Lib/AjaxForms/PurchasesModalHTML.php
+@@ -214,7 +214,9 @@ class PurchasesModalHTML
+             . ' LEFT JOIN productosprov pp ON pp.referencia = p.referencia'
+             . ' AND pp.codproveedor = ' . $dataBase->var2str(self::$codproveedor)
+             . ' AND pp.coddivisa = ' . $dataBase->var2str(self::$coddivisa)
+-            . ' WHERE p.secompra = true AND p.bloqueado = false';
++            . ' WHERE p.secompra = true AND p.bloqueado = false'
++            // infometica: oculta la variante base si el producto lo pide y tiene más variantes
++            . ' AND NOT (v.referencia = p.referencia AND COALESCE(p.ocultar_base, 0) = 1 AND (SELECT COUNT(*) FROM variantes v2 WHERE v2.idproducto = p.idproducto) > 1)';
+ 
+         if (self::$codfabricante) {
+             $sql .= ' AND p.codfabricante = ' . $dataBase->var2str(self::$codfabricante);
+diff --git a/Core/Lib/AjaxForms/SalesModalHTML.php b/Core/Lib/AjaxForms/SalesModalHTML.php
+index 8658832..c4c0b63 100644
+--- a/Core/Lib/AjaxForms/SalesModalHTML.php
++++ b/Core/Lib/AjaxForms/SalesModalHTML.php
+@@ -234,7 +234,9 @@ class SalesModalHTML
+             . ' FROM variantes v'
+             . ' LEFT JOIN productos p ON v.idproducto = p.idproducto'
+             . ' LEFT JOIN stocks s ON v.referencia = s.referencia AND s.codalmacen = ' . $dataBase->var2str(self::$codalmacen)
+-            . ' WHERE p.sevende = true AND p.bloqueado = false';
++            . ' WHERE p.sevende = true AND p.bloqueado = false'
++            // infometica: oculta la variante base si el producto lo pide y tiene más variantes
++            . ' AND NOT (v.referencia = p.referencia AND COALESCE(p.ocultar_base, 0) = 1 AND (SELECT COUNT(*) FROM variantes v2 WHERE v2.idproducto = p.idproducto) > 1)';
+ 
+         if (self::$codfabricante) {
+             $sql .= ' AND p.codfabricante = ' . $dataBase->var2str(self::$codfabricante);

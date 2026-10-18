@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Personalización infometica: casilla "Ocultar producto base".
+-->
+<view>
+    <columns>
+        <group name="options">
+            <column name="hide-base-product" title="Ocultar producto base" order="105">
+                <widget type="checkbox" fieldname="ocultar_base"/>
+            </column>
+        </group>
+    </columns>
+</view>

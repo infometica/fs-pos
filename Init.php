@@ -11,6 +11,7 @@ class Init extends InitClass
     public function init(): void
     {
         $this->loadExtension(new Extension\Model\Familia());
+        $this->loadExtension(new Extension\Model\Variante());
         $this->loadExtension(new Extension\Model\Base\SalesDocument());
         $this->loadExtension(new Extension\Controller\EditEstadoDocumento());
         $this->loadExtension(new Extension\Controller\EditSecuenciaDocumento());
