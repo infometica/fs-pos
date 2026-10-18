@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
     Personalización infometica: ocultar la variante base (sin color) del producto.
-    NULL = nunca decidido (se activa solo la 1ª vez que el producto tiene >1 variante).
+    Se marca a mano en la ficha del producto. NULL/0 = no ocultar. Solo tiene efecto si el
+    producto tiene más de una variante.
 -->
 <table>
     <column>

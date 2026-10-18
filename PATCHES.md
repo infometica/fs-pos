@@ -6,8 +6,8 @@ nueva a `vendor`, mergearla en `main` y revisar que estos parches siguen aplican
 | Fichero | Qué hace |
 |---|---|
 | `Extension/Table/variantes.xml`, `Extension/XMLView/EditVariante.xml` | Columna `variantes.descripcion` y campo editable: descripción propia por variante. |
-| `Extension/Model/Variante.php` | `description()`: si la variante tiene descripción propia, es la que usan facturas, albaranes y tickets. `save()`: la primera vez que un producto llega a más de una variante pone `productos.ocultar_base = 1` (el usuario puede desmarcarla; no se reactiva). |
-| `Extension/Table/productos.xml`, `Extension/XMLView/EditProducto.xml` | Columna `productos.ocultar_base` (NULL = nunca decidido) y casilla «Ocultar producto base» en la ficha del producto. |
+| `Extension/Model/Variante.php` | `description()`: si la variante tiene descripción propia, es la que usan facturas, albaranes y tickets. |
+| `Extension/Table/productos.xml`, `Extension/XMLView/EditProducto.xml` | Columna `productos.ocultar_base` y casilla «Ocultar producto base» en la ficha del producto. Se marca **a mano**; no hay activación automática. |
 | `Init.php` | Registra la extensión `Model\Variante`. |
 | `Model/Join/ProductoVariante.php` | Descripción = variante o producto; en el TPV oculta la variante base (la que tiene la referencia del producto) si `ocultar_base = 1` y el producto tiene más de una variante. **Fichero con saltos de línea CRLF: conservarlos.** |
 | `Lib/Services/Products.php` | La búsqueda del TPV también mira `variantes.descripcion`. |
